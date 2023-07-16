@@ -7,12 +7,13 @@ const Draft: React.FC = () => {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [authorEmail, setAuthorEmail] = useState('')
+  const POST = process.env.postURL;
 
   const submitData = async (e: React.SyntheticEvent) => {
     e.preventDefault()
     try {
       const body = { title, content, authorEmail }
-      await fetch(`/api/post`, {
+      await fetch(`${POST}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),

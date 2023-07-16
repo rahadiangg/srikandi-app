@@ -8,6 +8,7 @@ import prisma from '../../lib/prisma'
 import styles from '@/styles/Post.module.css'
 
 const PUBLISH = process.env.publishURL;
+const POST = process.env.postURL;
 
 async function publish(id: number): Promise<void> {
   await fetch(`${PUBLISH}/${id}`, {
@@ -17,7 +18,7 @@ async function publish(id: number): Promise<void> {
 }
 
 async function destroy(id: number): Promise<void> {
-  await fetch(`/api/post/${id}`, {
+  await fetch(`${POST}/${id}`, {
     method: 'DELETE',
   })
   await Router.push('/')
