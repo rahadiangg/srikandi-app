@@ -30,7 +30,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: "asia.gcr.io/${{ secrets.GCP_PROJECT_ID }}/srikandi-app:${{ GITHUB_SHA::7 }}"
+          tags: "asia.gcr.io/${{ secrets.GCP_PROJECT_ID }}/srikandi-app:$($GITHUB_SHA | cut -c1-7)"
 
       # - name: Build image
       #   run: |
@@ -62,5 +62,5 @@ jobs:
 
       - name: Deploy full
         run: |
-          sed -i "s;IMAGE;asia.gcr.io/${{ secrets.GCP_PROJECT_ID }}/srikandi-app:${GITHUB_SHA::7};g" _deployment/d-full.yaml
+          sed -i "s;IMAGE;asia.gcr.io/${{ secrets.GCP_PROJECT_ID }}/srikandi-app:$($GITHUB_SHA | cut -c1-7);g" _deployment/d-full.yaml
           kubectl apply -f _deployment/d-full.yaml
