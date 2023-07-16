@@ -43,7 +43,7 @@ jobs:
         id: auth
         uses: google-github-actions/auth@v1
         with :
-          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT }}
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Get GKE Credentials
