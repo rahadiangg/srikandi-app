@@ -54,7 +54,13 @@ jobs:
           cluster_name: ${{ secrets.GCP_GKE_NAME }}
           location: asia-southeast2
 
+      - name: Generate env application
+        run: |
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+
       - name: Deploy full
         run: |
           sed -i "s;IMAGE;asia.gcr.io/${{ secrets.GCP_PROJECT_ID }}/srikandi-app:${GITHUB_SHA::7};g" _deployment/d-full.yaml
+          kubectl delete secret srikandi-app
+          kubectl create secret generic srikandi-app --from-env-file .env
           kubectl apply -f _deployment/d-full.yaml
