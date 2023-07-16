@@ -24,21 +24,14 @@ jobs:
       - name: Auth Docker
         run: |
           gcloud --quiet auth configure-docker
-      
-      - name: Build and push
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: true
-          tags: "asia.gcr.io/${{ secrets.GCP_PROJECT_ID }}/srikandi-app:$($GITHUB_SHA | cut -c1-7)"
 
-      # - name: Build image
-      #   run: |
-      #     docker build -t asia.gcr.io/${{ secrets.GCP_PROJECT_ID }}/srikandi-app:${GITHUB_SHA::7} .
+      - name: Build image
+        run: |
+          docker build -t asia.gcr.io/${{ secrets.GCP_PROJECT_ID }}/srikandi-app:${GITHUB_SHA::7} .
 
-      # - name: Push image
-      #   run: |
-      #     docker push asia.gcr.io/${{ secrets.GCP_PROJECT_ID }}/srikandi-app:${GITHUB_SHA::7}
+      - name: Push image
+        run: |
+          docker push asia.gcr.io/${{ secrets.GCP_PROJECT_ID }}/srikandi-app:${GITHUB_SHA::7}
   
   deploy-full:
     name: Deploy full
@@ -62,5 +55,5 @@ jobs:
 
       - name: Deploy full
         run: |
-          sed -i "s;IMAGE;asia.gcr.io/${{ secrets.GCP_PROJECT_ID }}/srikandi-app:$($GITHUB_SHA | cut -c1-7);g" _deployment/d-full.yaml
+          sed -i "s;IMAGE;asia.gcr.io/${{ secrets.GCP_PROJECT_ID }}/srikandi-app:${GITHUB_SHA::7};g" _deployment/d-full.yaml
           kubectl apply -f _deployment/d-full.yaml
