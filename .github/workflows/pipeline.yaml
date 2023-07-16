@@ -2,33 +2,65 @@ name: Pipeline Deployment
 on:
   push:
     branches:
-      - main
+      - test
 
 jobs:
   build-and-push:
     runs-on: ubuntu-22.04
+    name: Build and Push
     steps:
-      - uses: actions:/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Auth to GCP
         id: auth
         uses: google-github-actions/auth@v1
         with :
-          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-          project_id: ${{ secrets.GCP_PROJECT_ID}}
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
       - name: Auth Docker
         run: |
-          docker login -u oauth2accesstoken -p "$(gcloud auth print-access-token)" https://asia.gcr.io
+          gcloud --quiet auth configure-docker
 
       - name: Build image
         run: |
-          docker build -t asia.gcr.io/${{ secrets.GCP_PROJECT_ID}}/srikandi-app:${GITHUB_SHA::7} .
+          docker build -t asia.gcr.io/${{ secrets.GCP_PROJECT_ID }}/srikandi-app:${GITHUB_SHA::7} .
 
       - name: Push image
         run: |
-          docker push asia.gcr.io/${{ secrets.GCP_PROJECT_ID}}/srikandi-app:${GITHUB_SHA::7}
+          docker push asia.gcr.io/${{ secrets.GCP_PROJECT_ID }}/srikandi-app:${GITHUB_SHA::7}
+  
+  deploy-full:
+    name: Deploy full
+    runs-on: ubuntu-22.04
+    needs:
+      - build-and-push
+    steps:
+      - uses: actions/checkout@v3
+      - name: Auth to GCP
+        id: auth
+        uses: google-github-actions/auth@v1
+        with :
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
 
+      - name: Get GKE Credentials
+        id: 'get-credentials'
+        uses: 'google-github-actions/get-gke-credentials@v1'
+        with:
+          cluster_name: ${{ secrets.GCP_GKE_NAME }}
+          location: asia-southeast2
+
+      - name: Generate env application
+        run: |
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+
+      - name: Deploy full
+        run: |
+          sed -i "s;IMAGE;asia.gcr.io/${{ secrets.GCP_PROJECT_ID }}/srikandi-app:${GITHUB_SHA::7};g" _deployment/d-full.yaml
+          kubectl delete secret srikandi-app --ignore-not-found
+          kubectl create secret generic srikandi-app --from-env-file .env
+          kubectl apply -f _deployment/d-full.yaml
