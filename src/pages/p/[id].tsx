@@ -7,15 +7,17 @@ import { PostProps } from '../../components/Post'
 import prisma from '../../lib/prisma'
 import styles from '@/styles/Post.module.css'
 
+const PUBLISH = process.env.publishURL;
+
 async function publish(id: number): Promise<void> {
-  await fetch(`/api/publish/${id}`, {
+  await fetch(`${PUBLISH}/${id}`, {
     method: 'PUT',
   })
   await Router.push('/')
 }
 
 async function destroy(id: number): Promise<void> {
-  await fetch(`/api/post/${id}`, {
+  await fetch(`/api/post/}/${id}`, {
     method: 'DELETE',
   })
   await Router.push('/')
